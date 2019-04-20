@@ -1,17 +1,60 @@
 <?php
     include "persona.php";
+    require_once "AccesoDatos.php";
 
     class Alumno extends Persona{
     
         public $legajo;
+        public $id;
 
-        function __construct($nombre, $edad, $dni, $legajo) 
+        public function constructor($nombre, $edad, $dni, $legajo, $id)
         {
-            parent::__construct($nombre, $edad, $dni);
+            $this->nombre = $nombre;
+            $this->edad = $edad;
+            $this->dni = $dni;
             $this->legajo = $legajo;
+            $this->id = $id;
         }
 
-        public function guardarAlumno($path)
+        //-----------------------------------BASE DE DATOS -------------------------------------------------------------------------------------
+
+        public static function TraerTodoLosAlumnos()
+        {
+                $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso(); 
+                $consulta =$objetoAccesoDato->RetornarConsulta("select * from alumno");
+                $consulta->execute();			
+                return $consulta->fetchAll(PDO::FETCH_CLASS, "alumno");		
+        }
+
+        public function InsertarAlumnoParametros()
+        {
+                   $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso(); 
+                   $consulta =$objetoAccesoDato->RetornarConsulta("INSERT into alumno (nombre,edad,dni,legajo)values(:nombre,:edad,:dni,:legajo)");
+                   $consulta->bindValue(':nombre',$this->nombre, PDO::PARAM_STR);
+                   $consulta->bindValue(':edad', $this->edad, PDO::PARAM_INT);
+                   $consulta->bindValue(':dni', $this->dni, PDO::PARAM_STR);
+                   $consulta->bindValue(':legajo', $this->legajo, PDO::PARAM_STR);
+                   $consulta->execute();		
+                   return $objetoAccesoDato->RetornarUltimoIdInsertado();
+        }
+
+        public function ModificarAlumno()
+        {
+   
+               $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso(); 
+               $consulta =$objetoAccesoDato->RetornarConsulta("
+                   update alumno
+                   set nombre='$this->nombre',
+                   edad='$this->edad',
+                   dni='$this->dni',
+                   legajo='$this->legajo'
+                   WHERE id='$this->id'");
+               return $consulta->execute();   
+        }
+
+        // --------------------------------- ARCHIVOS -----------------------------------------------------------------------------
+
+        public function guardarAlumnoTXT($path)
         {
             $datosAlumno = "{$this->nombre};{$this->edad};{$this->dni};{$this->legajo}".PHP_EOL;
 
@@ -48,7 +91,7 @@
             }
         }
 
-        public static function listarAlumnos($path)
+        public static function listarAlumnosTXT($path)
         {
             if (file_exists($path))
             {
@@ -59,7 +102,8 @@
                     $datosAlumno = fgets($gestor, filesize($path));
                     //explode divide un string en varios strings mediante el delimitador indicado como parametro
                     $arrayDatosAlumno = explode(";", $datosAlumno);
-                    $alumno = new Alumno($arrayDatosAlumno[0], $arrayDatosAlumno[1], $arrayDatosAlumno[2], $arrayDatosAlumno[3]);
+                    $alumno = new Alumno();
+                    $alumno->constructor($datosAlumno['nombre'], $datosAlumno['edad'], $datosAlumno['dni'], $datosAlumno['legajo']);
                     $arrayAlumnos[] = $alumno;
                 }            
                 fclose($gestor);
@@ -71,7 +115,7 @@
         {
             foreach($alumnos as $alumno)
             {
-                echo "Nombre: {$alumno->nombre}, Edad: {$alumno->edad}, Dni: {$alumno->dni}, Legajo: {$alumno->legajo}".PHP_EOL;
+                echo "Id: {$alumno->id}, Nombre: {$alumno->nombre}, Edad: {$alumno->edad}, Dni: {$alumno->dni}, Legajo: {$alumno->legajo}".PHP_EOL;
             }
         }
 
@@ -82,9 +126,10 @@
                 $gestor = fopen($path, "r");
                 while(!feof($gestor))
                 {
-                    $contenido = fgets($gestor, filesize($path));
+                    $contenido = fgets($gestor, filesize($path));  
                     $datosAlumno = json_decode($contenido, true);
-                    $alumno = new Alumno($datosAlumno['nombre'], $datosAlumno['edad'], $datosAlumno['dni'], $datosAlumno['legajo']);
+                    $alumno = new Alumno();
+                    $alumno->constructor($datosAlumno['nombre'], $datosAlumno['edad'], $datosAlumno['dni'], $datosAlumno['legajo']);
                     $arrayAlumnos[] = $alumno;
                 } 
                 array_pop($arrayAlumnos);           
@@ -93,16 +138,17 @@
         return $arrayAlumnos;
         }
 
-        public function modificarAlumno($path)
+        public function modificarAlumnoJSON($path)
         {
             $alumnosArray = Alumno::listarAlumnosJSON($path);
             foreach($alumnosArray as $alumno)
             {
-                if($alumno->legajo == $this->legajo)
+                if($alumno->id == $this->id)
                 {
                     $alumno->nombre = $this->nombre;
                     $alumno->edad = $this->edad;
                     $alumno->dni = $this->dni;
+                    $alumno->legajo = $this->legajo;
                     break;
                 }
             }

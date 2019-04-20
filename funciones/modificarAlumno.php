@@ -1,13 +1,13 @@
 <?php
-    require_once "./clases/Alumno.php";
+    require_once "./clases/alumno.php";
 
-    $nombre = $_PUT['nombre'];
-    $edad = $_PUT['edad'];
-    $dni = $_PUT['dni'];
-    $legajo = $_PUT['legajo'];
+    $datosPUT = fopen("php://input", "r");
+    $datos = fread($datosPUT, 1024);
+    $datosAlumno = json_decode($datos);
 
-    $alumno = new Alumno($nombre, $edad, $dni, $legajo);
+    $alumno = new Alumno();
+    $alumno->constructor($datosAlumno->nombre, $datosAlumno->edad, $datosAlumno->dni, $datosAlumno->legajo, $datosAlumno->id);
 
-    $alumno->modificarAlumno("./archivos/alumnos.json");
+    $alumno->ModificarAlumno();
 
 ?>

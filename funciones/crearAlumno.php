@@ -6,10 +6,12 @@
     $dni = $_POST['dni'];
     $legajo = $_POST['legajo'];
 
-    $alumno = new Alumno($nombre, $edad, $dni, $legajo);
+    $alumno = new Alumno();
+    $alumno->constructor($nombre, $edad, $dni, $legajo);
+    $alumno->InsertarAlumnoParametros();
 
-    $alumno->guardarAlumnoJSON("./archivos/alumnos.json");
+    //$alumno->guardarAlumnoJSON("./archivos/alumnos.json");
 
-    // $alumno->guardarAlumno("../archivos/alumnos.txt");
+    // $alumno->guardarAlumnoTXT("../archivos/alumnos.txt");
 
 ?>

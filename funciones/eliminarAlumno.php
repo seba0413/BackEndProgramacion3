@@ -1,9 +1,16 @@
 <?php
+    require_once "./clases/alumno.php";
 
-    require_once "../clases/alumno.php";
+    $datosPUT = fopen("php://input", "r");
+    $fp = fopen("./archivos/eliminarAlumno.json", "w");    
+    while ($datos = fread($datosPUT, 1024))
+        var_dump(fwrite($fp, $datos));   
+    
+    // fclose($fp);
+    // fclose($datosPUT);
 
-    $legajo = $_POST['legajo'];
+    // $id = json_decode("./archivos/eliminarAlumno.json");
 
-    Alumno::eliminarAlumno("../archivos/alumnos.json", $legajo);
+    // Alumno::eliminarAlumno("../archivos/alumnos.json", $id);
 
 ?>
