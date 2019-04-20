@@ -16,6 +16,14 @@
             $this->id = $id;
         }
 
+        public function constructorSinId($nombre, $edad, $dni, $legajo)
+        {
+            $this->nombre = $nombre;
+            $this->edad = $edad;
+            $this->dni = $dni;
+            $this->legajo = $legajo;
+        }
+
         //-----------------------------------BASE DE DATOS -------------------------------------------------------------------------------------
 
         public static function TraerTodoLosAlumnos()
@@ -29,12 +37,12 @@
         public static function Guardar($alumno)
         {
             if($alumno->id > 0)
-                $alumno->ModificarAlumno();
+                $alumno->ModificarAlumnoParametros();
             else
                 $alumno->InsertarAlumnoParametros();    
         }
 
-        public function InsertarAlumnoParametros()
+        function InsertarAlumnoParametros()
         {
                    $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso(); 
                    $consulta =$objetoAccesoDato->RetornarConsulta("INSERT into alumno (nombre,edad,dni,legajo)values(:nombre,:edad,:dni,:legajo)");
@@ -46,7 +54,25 @@
                    return $objetoAccesoDato->RetornarUltimoIdInsertado();
         }
 
-        public function ModificarAlumno()
+        public function ModificarAlumnoParametros()
+        {
+               $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso(); 
+               $consulta =$objetoAccesoDato->RetornarConsulta("
+                   update alumno 
+                   set nombre=:nombre,
+                   edad=:edad,
+                   dni=:dni,
+                   legajo=:legajo 
+                   WHERE id=:id");
+               $consulta->bindValue(':id',$this->id, PDO::PARAM_INT);
+               $consulta->bindValue(':nombre',$this->nombre, PDO::PARAM_STR);
+               $consulta->bindValue(':edad', $this->edad, PDO::PARAM_INT);
+               $consulta->bindValue(':dni', $this->dni, PDO::PARAM_STR);
+               $consulta->bindValue(':legajo', $this->legajo, PDO::PARAM_STR);
+               return $consulta->execute();
+        }
+
+        function ModificarAlumno()
         {
    
                $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso(); 
@@ -58,6 +84,20 @@
                    legajo='$this->legajo'
                    WHERE id='$this->id'");
                return $consulta->execute();   
+        }
+
+        public function BorrarAlumno()
+        {
+   
+               $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso(); 
+               $consulta =$objetoAccesoDato->RetornarConsulta("
+                   delete 
+                   from alumno 				
+                   WHERE id=:id");	
+                   $consulta->bindValue(':id',$this->id, PDO::PARAM_INT);		
+                   $consulta->execute();
+                   return $consulta->rowCount();
+   
         }
 
         // --------------------------------- ARCHIVOS -----------------------------------------------------------------------------

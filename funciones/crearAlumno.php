@@ -7,11 +7,11 @@
     $legajo = $_POST['legajo'];
 
     $alumno = new Alumno();
-    $alumno->constructor($nombre, $edad, $dni, $legajo);
+    $alumno->constructorSinId($nombre, $edad, $dni, $legajo);
     Alumno::Guardar($alumno);
 
     //$alumno->guardarAlumnoJSON("./archivos/alumnos.json");
 
-    // $alumno->guardarAlumnoTXT("../archivos/alumnos.txt");
+    //$alumno->guardarAlumnoTXT("../archivos/alumnos.txt");
 
 ?>

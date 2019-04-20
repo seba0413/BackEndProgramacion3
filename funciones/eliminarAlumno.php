@@ -1,15 +1,14 @@
 <?php
     require_once "./clases/alumno.php";
 
-    $datosPUT = fopen("php://input", "r");
-    $fp = fopen("./archivos/eliminarAlumno.json", "w");    
-    while ($datos = fread($datosPUT, 1024))
-        var_dump(fwrite($fp, $datos));   
-    
-    // fclose($fp);
-    // fclose($datosPUT);
+    $datosDELETE = fopen("php://input", "r");
+    $datos = fread($datosDELETE, 1024);
+    $datosAlumno = json_decode($datos);   
+    $alumno = new Alumno();
 
-    // $id = json_decode("./archivos/eliminarAlumno.json");
+    $alumno->id = $datosAlumno->id;
+    
+    $alumno->BorrarAlumno();
 
     // Alumno::eliminarAlumno("../archivos/alumnos.json", $id);
 
