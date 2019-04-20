@@ -26,6 +26,14 @@
                 return $consulta->fetchAll(PDO::FETCH_CLASS, "alumno");		
         }
 
+        public static function Guardar($alumno)
+        {
+            if($alumno->id > 0)
+                $alumno->ModificarAlumno();
+            else
+                $alumno->InsertarAlumnoParametros();    
+        }
+
         public function InsertarAlumnoParametros()
         {
                    $objetoAccesoDato = AccesoDatos::dameUnObjetoAcceso(); 

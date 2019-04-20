@@ -8,7 +8,7 @@
 
     $alumno = new Alumno();
     $alumno->constructor($nombre, $edad, $dni, $legajo);
-    $alumno->InsertarAlumnoParametros();
+    Alumno::Guardar($alumno);
 
     //$alumno->guardarAlumnoJSON("./archivos/alumnos.json");
 

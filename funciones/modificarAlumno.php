@@ -8,6 +8,6 @@
     $alumno = new Alumno();
     $alumno->constructor($datosAlumno->nombre, $datosAlumno->edad, $datosAlumno->dni, $datosAlumno->legajo, $datosAlumno->id);
 
-    $alumno->ModificarAlumno();
+    Alumno::Guardar($alumno);
 
 ?>
