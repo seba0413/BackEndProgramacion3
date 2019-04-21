@@ -217,6 +217,37 @@
         public function modificarAlumnoTXT($path)
         {
             $alumnosArray = Alumno::listarAlumnosTXT($path);
+            $this->modificarDatos($alumnosArray);
+            $this->escribirArchivoTXT($path, $alumnosArray); 
+        }
+
+        public function modificarAlumnoJSON($path)
+        {
+            $alumnosArray = Alumno::listarAlumnosJSON($path);
+            $this->modificarDatos($alumnosArray);
+            $this->escribirArchivoJSON($path, $alumnosArray);
+        }
+        #endregion
+
+        #region Eliminar
+        public function eliminarAlumnoJSON($path)
+        {
+            $alumnosArray = Alumno::listarAlumnosJSON($path);
+            $alumnos = $this->eliminarRegistro($alumnosArray);
+            $this->escribirArchivoJSON($path,$alumnos);
+        }
+
+        public function eliminarAlumnoTXT($path)
+        {
+            $alumnosArray = Alumno::listarAlumnosTXT($path);
+            $alumnos = $this->eliminarRegistro($alumnosArray);
+            $this->escribirArchivoTXT($path, $alumnos);
+        }
+        #endregion
+
+        #region Metodos Privados
+        function modificarDatos($alumnosArray)
+        {
             foreach($alumnosArray as $alumno)
             {
                 if (strcmp ($alumno->legajo , $this->legajo ) == 0)
@@ -227,45 +258,10 @@
                     break;
                 }                
             }
-
-            $file = fopen($path, "w");
-            foreach ($alumnosArray as $alumno)
-            {
-                $datosAlumno = "{$alumno->nombre};{$alumno->edad};{$alumno->dni};{$alumno->legajo}".PHP_EOL;
-                fwrite($file, $datosAlumno);
-            }
-                
-            fclose($file); 
         }
-
-        public function modificarAlumnoJSON($path)
+        
+        function eliminarRegistro($alumnosArray)
         {
-            $alumnosArray = Alumno::listarAlumnosJSON($path);
-            foreach($alumnosArray as $alumno)
-            {
-                if($alumno->legajo == $this->legajo)
-                {
-                    $alumno->nombre = $this->nombre;
-                    $alumno->edad = $this->edad;
-                    $alumno->dni = $this->dni;
-                    break;
-                }
-            }
-
-            $file = fopen($path, "w");
-            foreach ($alumnosArray as $alumno)
-            {
-                fwrite($file, $alumno->retornarJson());
-            }
-                
-            fclose($file); 
-        }
-        #endregion
-
-        #region Eliminar
-        public function eliminarAlumnoJSON($path)
-        {
-            $alumnosArray = Alumno::listarAlumnosJSON($path);
             for($i = 0; $i<count($alumnosArray); $i++)
             {
                 if($alumnosArray[$i]->legajo == $this->legajo)
@@ -278,39 +274,31 @@
                 }
             }
             array_pop($alumnosArray);
-
-            $file = fopen($path, "w");
-            foreach ($alumnosArray as $alumno)
-            {
-                fwrite($file, $alumno->retornarJson());
-            }
-            fclose($file);
+            return $alumnosArray;
         }
 
-        public function eliminarAlumnoTXT($path)
+        function escribirArchivoTXT($path, $alumnosArray)
         {
-            $alumnosArray = Alumno::listarAlumnosTXT($path);
-            for($i = 0; $i<count($alumnosArray); $i++)
-            {
-                if($alumnosArray[$i]->legajo == $this->legajo)
-                {
-                    while($i < count($alumnosArray)-1)
-                    {
-                        $alumnosArray[$i] = $alumnosArray[$i+1];
-                        $i++;
-                    }
-                }
-            }
-            array_pop($alumnosArray);
-
             $file = fopen($path, "w");
             foreach ($alumnosArray as $alumno)
             {
                 $datosAlumno = "{$alumno->nombre};{$alumno->edad};{$alumno->dni};{$alumno->legajo}".PHP_EOL;
                 fwrite($file, $datosAlumno);
-            }
+            }                
             fclose($file);
         }
+
+        function escribirArchivoJSON($path, $alumnosArray)
+        {
+            $file = fopen($path, "w");
+            foreach ($alumnosArray as $alumno)
+            {
+                fwrite($file, $alumno->retornarJson());
+            }
+                
+            fclose($file); 
+        }
+
         #endregion
 
         #region Foto
