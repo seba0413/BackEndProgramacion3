@@ -7,6 +7,8 @@
         public $legajo;
         public $id;
 
+        #region Constructores
+
         public function constructor($nombre, $edad, $dni, $legajo, $id)
         {
             $this->nombre = $nombre;
@@ -24,7 +26,9 @@
             $this->legajo = $legajo;
         }
 
-        //-----------------------------------BASE DE DATOS -------------------------------------------------------------------------------------
+        #endregion
+
+        #region BASE DE DATOS
 
         public static function TraerTodoLosAlumnos()
         {
@@ -34,12 +38,15 @@
                 return $consulta->fetchAll(PDO::FETCH_CLASS, "alumno");		
         }
 
-        public static function Guardar($alumno)
+        public static function Guardar($alumno, $foto)
         {
-            if($alumno->id > 0)
+            if($alumno->id)
                 $alumno->ModificarAlumnoParametros();
             else
-                $alumno->InsertarAlumnoParametros();    
+                $alumno->InsertarAlumnoParametros();
+
+            if($foto)
+                $alumno->guardarFoto($foto);    
         }
 
         function InsertarAlumnoParametros()
@@ -99,9 +106,11 @@
                    return $consulta->rowCount();
    
         }
+        #endregion
 
-        // --------------------------------- ARCHIVOS -----------------------------------------------------------------------------
+        #region ARCHIVOS
 
+        #region Guardar
         public function guardarAlumnoTXT($path)
         {
             $datosAlumno = "{$this->nombre};{$this->edad};{$this->dni};{$this->legajo}".PHP_EOL;
@@ -138,7 +147,9 @@
                 fclose($file);
             }
         }
+        #endregion
 
+        #region Listar
         public static function listarAlumnosTXT($path)
         {
             if (file_exists($path))
@@ -150,21 +161,16 @@
                     $datosAlumno = fgets($gestor, filesize($path));
                     //explode divide un string en varios strings mediante el delimitador indicado como parametro
                     $arrayDatosAlumno = explode(";", $datosAlumno);
-                    $alumno = new Alumno();
-                    $alumno->constructor($datosAlumno['nombre'], $datosAlumno['edad'], $datosAlumno['dni'], $datosAlumno['legajo']);
-                    $arrayAlumnos[] = $alumno;
-                }            
+                    if(count($arrayDatosAlumno)>1)
+                    {
+                        $alumno = new Alumno();
+                        $alumno->constructorSinId($arrayDatosAlumno[0], $arrayDatosAlumno[1], $arrayDatosAlumno[2], trim($arrayDatosAlumno[3]));
+                        $arrayAlumnos[] = $alumno;
+                    }                
+                }                          
                 fclose($gestor);
             }  
             return $arrayAlumnos;
-        }
-
-        public static function mostrarDatos($alumnos)
-        {
-            foreach($alumnos as $alumno)
-            {
-                echo "Id: {$alumno->id}, Nombre: {$alumno->nombre}, Edad: {$alumno->edad}, Dni: {$alumno->dni}, Legajo: {$alumno->legajo}".PHP_EOL;
-            }
         }
 
         public static function listarAlumnosJSON($path)
@@ -176,14 +182,60 @@
                 {
                     $contenido = fgets($gestor, filesize($path));  
                     $datosAlumno = json_decode($contenido, true);
-                    $alumno = new Alumno();
-                    $alumno->constructor($datosAlumno['nombre'], $datosAlumno['edad'], $datosAlumno['dni'], $datosAlumno['legajo']);
-                    $arrayAlumnos[] = $alumno;
-                } 
-                array_pop($arrayAlumnos);           
+                    if($datosAlumno)
+                    {
+                        $alumno = new Alumno();
+                        $alumno->constructorSinId($datosAlumno['nombre'], $datosAlumno['edad'], $datosAlumno['dni'], $datosAlumno['legajo']);
+                        $arrayAlumnos[] = $alumno;
+                    }      
+                }        
                 fclose($gestor);
             }
         return $arrayAlumnos;
+        }
+        #endregion
+
+        #region Mostrar
+        public static function mostrarDatos($alumnos)
+        {
+            foreach($alumnos as $alumno)
+            {
+                echo "Id: {$alumno->id}, Nombre: {$alumno->nombre}, Edad: {$alumno->edad}, Dni: {$alumno->dni}, Legajo: {$alumno->legajo}".PHP_EOL;
+            }
+        }
+
+        public static function mostrarDatosDesdeArchivo($alumnos)
+        {
+            foreach($alumnos as $alumno)
+            {
+                echo "Nombre: {$alumno->nombre}, Edad: {$alumno->edad}, Dni: {$alumno->dni}, Legajo: {$alumno->legajo}".PHP_EOL;
+            }
+        }
+        #endregion
+
+        #region Modificar
+        public function modificarAlumnoTXT($path)
+        {
+            $alumnosArray = Alumno::listarAlumnosTXT($path);
+            foreach($alumnosArray as $alumno)
+            {
+                if (strcmp ($alumno->legajo , $this->legajo ) == 0)
+                {
+                    $alumno->nombre = $this->nombre;
+                    $alumno->edad = $this->edad;
+                    $alumno->dni = $this->dni;
+                    break;
+                }                
+            }
+
+            $file = fopen($path, "w");
+            foreach ($alumnosArray as $alumno)
+            {
+                $datosAlumno = "{$alumno->nombre};{$alumno->edad};{$alumno->dni};{$alumno->legajo}".PHP_EOL;
+                fwrite($file, $datosAlumno);
+            }
+                
+            fclose($file); 
         }
 
         public function modificarAlumnoJSON($path)
@@ -191,12 +243,11 @@
             $alumnosArray = Alumno::listarAlumnosJSON($path);
             foreach($alumnosArray as $alumno)
             {
-                if($alumno->id == $this->id)
+                if($alumno->legajo == $this->legajo)
                 {
                     $alumno->nombre = $this->nombre;
                     $alumno->edad = $this->edad;
                     $alumno->dni = $this->dni;
-                    $alumno->legajo = $this->legajo;
                     break;
                 }
             }
@@ -209,13 +260,15 @@
                 
             fclose($file); 
         }
+        #endregion
 
-        public static function eliminarAlumno($path, $legajo)
+        #region Eliminar
+        public function eliminarAlumnoJSON($path)
         {
             $alumnosArray = Alumno::listarAlumnosJSON($path);
             for($i = 0; $i<count($alumnosArray); $i++)
             {
-                if($alumnosArray[$i]->legajo == $legajo)
+                if($alumnosArray[$i]->legajo == $this->legajo)
                 {
                     while($i < count($alumnosArray)-1)
                     {
@@ -234,6 +287,33 @@
             fclose($file);
         }
 
+        public function eliminarAlumnoTXT($path)
+        {
+            $alumnosArray = Alumno::listarAlumnosTXT($path);
+            for($i = 0; $i<count($alumnosArray); $i++)
+            {
+                if($alumnosArray[$i]->legajo == $this->legajo)
+                {
+                    while($i < count($alumnosArray)-1)
+                    {
+                        $alumnosArray[$i] = $alumnosArray[$i+1];
+                        $i++;
+                    }
+                }
+            }
+            array_pop($alumnosArray);
+
+            $file = fopen($path, "w");
+            foreach ($alumnosArray as $alumno)
+            {
+                $datosAlumno = "{$alumno->nombre};{$alumno->edad};{$alumno->dni};{$alumno->legajo}".PHP_EOL;
+                fwrite($file, $datosAlumno);
+            }
+            fclose($file);
+        }
+        #endregion
+
+        #region Foto
         public function guardarFoto($foto)
         {        
             //Ruta temporal de la foto.
@@ -242,13 +322,13 @@
             $extension = explode(".",$foto['name']);
             $index = count($extension) - 1;
             //Guardo la ruta del servidor donde se va a guardar la foto. 
-            $rutafoto = "../fotos/{$this->legajo}{$this->nombre}.{$extension[$index]}";
+            $rutafoto = "./fotos/{$this->legajo}{$this->nombre}.{$extension[$index]}";
             //Obtengo la fecha de hoy
             $fecha = date("d") . "-" . date("m") . "-" . date("Y");
             //Guardo la ruta del servidor donde voy a backupear las fotos viejas
-            $rutaBackup = "../fotosBackup/{$this->legajo}{$this->nombre}{$fecha}.{$extension[$index]}";
+            $rutaBackup = "./fotosBackup/{$this->legajo}{$this->nombre}{$fecha}.{$extension[$index]}";
             //Ruta de la imagen png
-            $estampa = "../fotos/estampa.png";
+            $estampa = "./fotos/estampa.png";
             
             if(!$this->backupFoto($ruta, $rutafoto, $rutaBackup))
             {
@@ -287,5 +367,8 @@
             imagejpeg($im, $urlimagen);
             imagedestroy($im);
         }
+        #endregion
+
+        #endregion
     }
 ?>

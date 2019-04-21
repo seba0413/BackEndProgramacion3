@@ -1,10 +1,17 @@
 <?php
     require_once "./clases/alumno.php";
 
-    // $alumnos = Alumno::TraerTodoLosAlumnos();
-    // Alumno::mostrarDatos($alumnos);
+    //Listar desde Base de datos
+    $alumnosBD = Alumno::TraerTodoLosAlumnos();
+    Alumno::mostrarDatos($alumnosBD);
 
-    $alumnos = Alumno::listarAlumnosJSON("./archivos/alumnos.json");
-    Alumno::mostrarDatos($alumnos);
+    //Listar desde archivo JSON
+    $alumnosJSON = Alumno::listarAlumnosJSON("./archivos/alumnos.json");
+    Alumno::mostrarDatosDesdeArchivo($alumnosJSON);
+
+    //Listar desde archivo TXT
+    $alumnosTXT = Alumno::listarAlumnosTXT("./archivos/alumnos.txt");
+    Alumno::mostrarDatosDesdeArchivo($alumnosTXT);
+
 
 ?> 
